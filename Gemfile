@@ -72,6 +72,7 @@ unless ENV["PACKAGING"] && ENV["PACKAGING"] == "yes"
   end
 
   group :development, :test do
+    gem "rspec-rails"
     gem "byebug"
     gem "web-console", "~> 2.1.3"
     gem "puma"
@@ -85,11 +86,12 @@ unless ENV["PACKAGING"] && ENV["PACKAGING"] == "yes"
     gem "brakeman", require: false
     gem "database_cleaner"
     gem "md2man", "~>5.1.1", require: false
+    gem "binman", "~>5.1.0"
+    gem "phantomjs", "~> 2.1.1.0"
   end
 
   group :test do
     gem "shoulda"
-    gem "rspec-rails"
     gem "vcr"
     gem "webmock", require: false
     gem "simplecov", require: false

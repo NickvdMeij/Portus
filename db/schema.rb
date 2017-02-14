@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160614122012) do
+ActiveRecord::Schema.define(version: 20160927141850) do
 
   create_table "activities", force: :cascade do |t|
     t.integer  "trackable_id",   limit: 4
@@ -89,6 +89,14 @@ ActiveRecord::Schema.define(version: 20160614122012) do
   add_index "registries", ["hostname"], name: "index_registries_on_hostname", unique: true, using: :btree
   add_index "registries", ["name"], name: "index_registries_on_name", unique: true, using: :btree
 
+  create_table "registry_events", force: :cascade do |t|
+    t.string   "event_id",   limit: 255, default: ""
+    t.string   "repository", limit: 255, default: ""
+    t.string   "tag",        limit: 255, default: ""
+    t.datetime "created_at",                          null: false
+    t.datetime "updated_at",                          null: false
+  end
+
   create_table "repositories", force: :cascade do |t|
     t.string   "name",         limit: 255, default: "",    null: false
     t.integer  "namespace_id", limit: 4
@@ -120,6 +128,7 @@ ActiveRecord::Schema.define(version: 20160614122012) do
     t.string   "digest",        limit: 255
     t.string   "image_id",      limit: 255, default: ""
     t.boolean  "marked",                    default: false
+    t.string   "username",      limit: 255
   end
 
   add_index "tags", ["name", "repository_id"], name: "index_tags_on_name_and_repository_id", unique: true, using: :btree

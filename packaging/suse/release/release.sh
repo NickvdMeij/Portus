@@ -17,7 +17,7 @@ fi
 if [ $1 == "-h" ];then
   usage_and_exit
 fi
-if [[ ! "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]];then
+if [[ ! "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+(rc[0-9]+)?$ ]];then
  usage_and_exit
 fi 
 
@@ -31,8 +31,9 @@ OSC="osc -A $API"
 PKG_DIR=/tmp/$0/$RANDOM
 
 create_subproject() {
-  $OSC ls $DEST_PROJECT > /dev/null 2>&1
-  if [ "$?" == "0" ];then
+  prj_exists=true
+  $OSC ls $DEST_PROJECT || prj_exists=false
+  if $prj_exists;then
     echo "Project $DEST_PROJECT already exists."
     return
   fi
@@ -68,7 +69,7 @@ update_package() {
   fi
 
   echo "Remove previous tarballs"
-  $OSC rm $(ls *.tar.gz)
+  $OSC rm $(ls *.tar.gz) || echo "No previous tarball."
   echo "Getting tarball"
   $OSC service disabledrun
 
@@ -80,13 +81,7 @@ update_package() {
   cd Portus-$RELEASE/packaging/suse
   TRAVIS_COMMIT=$RELEASE TRAVIS_BRANCH=$BRANCH ./make_spec.sh
   cd -
-  # in 2.0.3, Portus is still uppercase
-  if [ -f Portus-$RELEASE/packaging/suse/Portus.spec ];then
-    cp Portus-$RELEASE/packaging/suse/Portus.spec portus.spec
-  # in version >= 2.1, portus is downcase
-  elif [ -f Portus-$RELEASE/packaging/suse/portus.spec ];then
-    cp Portus-$RELEASE/packaging/suse/portus.spec portus.spec
-  fi
+  cp Portus-$RELEASE/packaging/suse/portus.spec portus.spec
 
   echo "Setting version $RELEASE in spec file"
   # We set the BRANCH to the RELEASE tag

@@ -6,6 +6,7 @@ ENV COMPOSE=1
 ENV CATALOG_CRON="5.minutes"
 
 WORKDIR /portus
+<<<<<<< HEAD
 
 EXPOSE 3000
 
@@ -17,15 +18,15 @@ RUN echo "deb http://download.opensuse.org/repositories/home:/flavio_castelli:/p
 RUN wget http://download.opensuse.org/repositories/home:/flavio_castelli:/phantomjs/Debian_8.0/Release.key && \
   apt-key add Release.key && \
   rm Release.key
+
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends phantomjs && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends nodejs
 
 ADD . .
 
 RUN apt-get update && apt-get install -y telnet ldap-utils
 COPY Gemfile* ./
-RUN bundle install --retry=3
+RUN bundle install --retry=3 && bundle binstubs phantomjs
 
 RUN mkdir -p /etc/nginx/conf.d
 VOLUME /etc/nginx/conf.d

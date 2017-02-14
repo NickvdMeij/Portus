@@ -8,3 +8,4 @@
 #= require open_search
 #= require alert
 #= require bootstrap-typeahead-rails
+#= require_tree .

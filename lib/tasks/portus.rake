@@ -31,13 +31,61 @@ namespace :portus do
     )
   end
 
+  desc "Create a registry"
+  task :create_registry, [:name, :hostname, :use_ssl, :external] => :environment do |_, args|
+    if args.count != 3 && args.count != 4
+      puts "There are 3 required arguments and an optional one"
+      exit(-1)
+    end
+
+    args.each do |k, v|
+      if v.empty? && k != :external
+        puts "You have to provide a value for `#{k}'"
+        exit(-1)
+      end
+    end
+
+    if Registry.count > 0
+      puts "There is already a registry configured!"
+      exit(-1)
+    end
+
+    registry = Registry.new(
+      name:              args[:name],
+      hostname:          args[:hostname],
+      use_ssl:           args[:use_ssl],
+      external_hostname: args[:external]
+    )
+    msg = registry.reachable?
+    unless msg.empty?
+      puts "\nRegistry not reachable:\n#{registry.inspect}\n#{msg}\n"
+      exit(-1)
+    end
+    registry.save
+  end
+
   desc "Create a user"
   task :create_user, [:username, :email, :password, :admin] => :environment do |_, args|
+    if args.count != 4
+      puts "There are 4 required arguments"
+      exit(-1)
+    end
+
     args.each do |k, v|
       if v.empty?
         puts "You have to provide a value for `#{k}'"
         exit(-1)
       end
+    end
+
+    unless Registry.any?
+      puts <<HERE
+
+ERROR: There is no registry on the DB! You can either call the portus:create_registry
+task, or log in as an administrator into Portus and fill in the form that
+will be presented to you.
+HERE
+      exit(-1)
     end
 
     u = User.create!(
@@ -123,7 +171,7 @@ HERE
       puts "[#{index + 1}/#{tags.size}] Updating #{repo_name}/#{t.name}"
 
       begin
-        id, digest, = client.manifest(t.repository.name, t.name)
+        id, digest, = client.manifest(t.repository.full_name, t.name)
         t.update_attributes(digest: digest, image_id: id)
       rescue StandardError => e
         puts "Could not get the manifest for #{repo_name}: #{e.message}"

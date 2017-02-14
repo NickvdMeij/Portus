@@ -1,9 +1,9 @@
 class Admin::UsersController < Admin::BaseController
   respond_to :html, :js
-  before_action :another_user_access, only: [:edit, :update]
+  before_action :another_user_access, only: [:edit, :update, :destroy]
 
   def index
-    @users = User.not_portus.page(params[:page])
+    @users = User.not_portus.order(:username).page(params[:page])
     @admin_count = User.admins.count
   end
 
@@ -15,7 +15,7 @@ class Admin::UsersController < Admin::BaseController
     @user = User.create(user_create_params)
 
     if @user.persisted?
-      flash[:notice] = "User created successfully!"
+      flash[:notice] = "User '#{@user.username}' was created successfully"
       flash[:float] = true
       redirect_to admin_users_path
     else
@@ -36,10 +36,26 @@ class Admin::UsersController < Admin::BaseController
     attr = params.require(:user).permit([:email, :display_name])
 
     if @user.update_attributes(attr)
-      redirect_to admin_users_path, notice: "User updated successfully", float: true
+      redirect_to admin_users_path,
+                  notice: "User '#{@user.username}' was updated successfully",
+                  float:  true
     else
-      redirect_to edit_admin_user_path(@user), alert: @user.errors.full_messages, float: true
+      redirect_to edit_admin_user_path(@user),
+                  alert: @user.errors.full_messages,
+                  float: true
     end
+  end
+
+  # DELETE /admin/user/:id
+  def destroy
+    return if @user.nil?
+
+    @user.update_activities!(current_user)
+    @user.destroy!
+
+    redirect_to admin_users_path,
+                notice: "User '#{@user.username}' was removed successfully",
+                float:  true
   end
 
   # PATCH/PUT /admin/user/1/toggle_admin

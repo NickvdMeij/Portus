@@ -34,8 +34,14 @@
 #
 
 class User < ActiveRecord::Base
-  devise :database_authenticatable, :registerable, :lockable,
-         :recoverable, :rememberable, :trackable, :validatable, authentication_keys: [:username]
+  include PublicActivity::Common
+
+  enabled_devise_modules = [:database_authenticatable, :registerable, :lockable,
+                            :recoverable, :rememberable, :trackable, :validatable,
+                            authentication_keys: [:username]]
+
+  enabled_devise_modules.delete(:validatable) if Portus::LDAP.enabled?
+  devise(*enabled_devise_modules)
 
   APPLICATION_TOKENS_MAX = 5
 
@@ -43,6 +49,9 @@ class User < ActiveRecord::Base
   validates :username, presence: true, uniqueness: true
   validate :private_namespace_and_team_available, on: :create
   after_create :create_personal_namespace!
+
+  # Actions performed before destroy
+  before_destroy :update_tags!
 
   belongs_to :namespace
   has_many :team_users
@@ -176,6 +185,32 @@ class User < ActiveRecord::Base
     end
 
     false
+  end
+
+  # Update the tags owned by this user before this user gets destroyed.
+  def update_tags!
+    Tag.where(user_id: id).update_all(user_id: nil, username: username)
+  end
+
+  # Update the activities owned by this user. This method should only be called
+  # before destroying this user.
+  def update_activities!(owner)
+    # Originally this was handled in a single query, but with that is was not
+    # possible to fix a bug as specified in PR #1144. Now it's handled in a
+    # block that ends up performing multiple queries, which we want to perform
+    # atomically (thus the transaction).
+    ActiveRecord::Base.transaction do
+      PublicActivity::Activity.where(owner_id: id).find_each do |a|
+        a.owner_id   = nil
+        a.owner_type = nil
+        a.parameters = a.parameters.merge(owner_name: display_username)
+        a.save
+      end
+    end
+
+    create_activity :delete,
+                    owner:      owner,
+                    parameters: { username: username }
   end
 
   protected

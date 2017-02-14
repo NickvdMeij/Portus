@@ -114,6 +114,18 @@ CSV
 
       expect(response.body).to eq(csv)
     end
-  end
 
+    it "generates an CSV file with all the entries" do
+      # Create activities way beyond a single page.
+      Array.new(50) { rand(1000..10000) }.uniq.each do |nr|
+        team = Team.new(name: "team#{nr}")
+        team.owners << user
+        team.save
+        team.create_activity :create, owner: user
+      end
+
+      get :index, format: :csv
+      expect(response.body.split("\n").size).to eq 61
+    end
+  end
 end

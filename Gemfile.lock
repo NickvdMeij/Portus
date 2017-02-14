@@ -213,6 +213,7 @@ GEM
     paint (1.0.0)
     parser (2.3.1.2)
       ast (~> 2.2)
+    phantomjs (2.1.1.0)
     poltergeist (1.6.0)
       capybara (~> 2.1)
       cliver (~> 0.3.1)
@@ -231,7 +232,7 @@ GEM
       activerecord (>= 3.0)
       i18n (>= 0.5.0)
       railties (>= 3.0.0)
-    puma (2.14.0)
+    puma (3.6.2)
     pundit (1.0.1)
       activesupport (>= 3.0.0)
     quiet_assets (1.1.0)
@@ -403,6 +404,7 @@ DEPENDENCIES
   awesome_print
   base32
   bcrypt
+  binman (~> 5.1.0)
   bootstrap-sass (~> 3.3.4)
   bootstrap-typeahead-rails
   brakeman
@@ -432,6 +434,7 @@ DEPENDENCIES
   md2man (~> 5.1.1)
   mysql2
   net-ldap
+  phantomjs (~> 2.1.1.0)
   poltergeist
   pry-rails
   public_activity

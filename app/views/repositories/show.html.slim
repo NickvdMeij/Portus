@@ -107,7 +107,7 @@
                   td
                     .label.label-success
                       = t.name
-                  td= tag.first.author.display_username
+                  td= tag.first.owner
                   td
                     - if tag.first.image_id.blank?
                       = "-"
@@ -121,7 +121,11 @@
                   - tag.each do |t|
                     .label.label-success
                       = t.name
+<<<<<<< HEAD
                 td= tag.first.author.display_username
+=======
+                td= tag.first.owner
+>>>>>>> fb43500fa84b8fd876a4bcb4236e5e18728ce655
                 td
                   - if tag.first.image_id.blank?
                     = "-"
